@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soccer Quiz</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
+  .card{background:#fff;border-radius:16px;border:0.5px solid #e0e0d8;padding:2rem;width:100%;max-width:640px}
+  h1{font-size:20px;font-weight:500;color:#1a1a18;margin-bottom:4px}
+  .subtitle{font-size:13px;color:#888;margin-bottom:1.5rem}
+  .prog-bar{height:4px;background:#e8e8e4;border-radius:2px;margin-bottom:1.5rem}
+  .prog-fill{height:100%;background:#1D9E75;border-radius:2px;transition:width .4s}
+  .q-meta{font-size:11px;color:#aaa;margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase}
+  .cat-badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+  .cb-pyramid{background:#E1F5EE;color:#0F6E56}
+  .cb-player{background:#EEEDFE;color:#3C3489}
+  .cb-club{background:#FAEEDA;color:#633806}
+  .cb-multi{background:#FAECE7;color:#993C1D}
+  .cb-world{background:#E6F1FB;color:#185FA5}
+  .q-text{font-size:17px;font-weight:500;color:#1a1a18;margin-bottom:1.25rem;line-height:1.5}
+  .opts{display:grid;gap:9px}
+  .opt{background:#fff;border:0.5px solid #ccc;border-radius:10px;padding:13px 15px;text-align:left;font-size:14px;color:#1a1a18;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:10px;width:100%}
+  .opt:hover:not(:disabled){background:#f5f5f3}
+  .opt.correct{background:#E1F5EE;border-color:#1D9E75;color:#085041}
+  .opt.wrong{background:#FCEBEB;border-color:#E24B4A;color:#501313}
+  .opt.reveal{background:#E1F5EE;border-color:#1D9E75;color:#085041}
+  .opt:disabled{cursor:default}
+  .opt-ltr{width:24px;height:24px;border-radius:50%;background:#f0f0ec;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+  .explain{margin-top:1rem;padding:13px 15px;background:#f5f5f3;border-radius:10px;border-left:3px solid #1D9E75;font-size:13px;color:#555;line-height:1.6}
+  .next-btn{margin-top:1.2rem;padding:11px 22px;border-radius:10px;border:0.5px solid #ccc;background:#fff;font-size:14px;cursor:pointer;color:#1a1a18}
+  .next-btn:hover{background:#f5f5f3}
+  .sort-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+  .sort-item{background:#fff;border:0.5px solid #ccc;border-radius:10px;padding:11px 14px;font-size:14px;cursor:grab;display:flex;align-items:center;gap:10px;user-select:none;color:#1a1a18}
+  .sort-item:active{cursor:grabbing}
+  .sort-item.dragging{opacity:.4}
+  .sort-item.over{border-color:#1D9E75}
+  .drag-icon{color:#bbb;font-size:16px;flex-shrink:0}
+  .sort-num{width:22px;height:22px;border-radius:50%;background:#f0f0ec;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+  .check-btn{padding:11px 22px;border-radius:10px;border:0.5px solid #ccc;background:#fff;font-size:14px;cursor:pointer;color:#1a1a18}
+  .check-btn:hover{background:#f5f5f3}
+  .sort-result{margin-top:1rem;padding:13px 15px;border-radius:10px;font-size:13px;line-height:1.6}
+  .sort-result.ok{background:#E1F5EE;border-left:3px solid #1D9E75;color:#085041}
+  .sort-result.bad{background:#FCEBEB;border-left:3px solid #E24B4A;color:#501313}
+  .ms-opt{background:#fff;border:0.5px solid #ccc;border-radius:10px;padding:12px 15px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;color:#1a1a18;transition:background .15s}
+  .ms-opt:hover:not(.disabled){background:#f5f5f3}
+  .ms-opt.selected{background:#E6F1FB;border-color:#378ADD;color:#042C53}
+  .ms-opt.ms-correct{background:#E1F5EE;border-color:#1D9E75;color:#085041}
+  .ms-opt.ms-wrong{background:#FCEBEB;border-color:#E24B4A;color:#501313}
+  .ms-opt.ms-missed{background:#FAEEDA;border-color:#BA7517;color:#412402}
+  .ms-opt.disabled{cursor:default}
+  .ms-check{width:18px;height:18px;border-radius:4px;border:1.5px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+  .ms-opt.selected .ms-check{background:#378ADD;border-color:#378ADD;color:#fff}
+  .ms-note{font-size:12px;color:#aaa;margin-bottom:10px}
+  .score-wrap{text-align:center;padding:2rem 0}
+  .score-num{font-size:52px;font-weight:500;color:#1a1a18}
+  .score-lbl{font-size:15px;color:#888;margin-top:4px}
+  .score-msg{font-size:17px;margin:1.25rem 0 .4rem;font-weight:500;color:#1a1a18}
+  .score-sub{font-size:13px;color:#666;line-height:1.6}
+  .restart-btn{margin-top:1.5rem;padding:11px 26px;border-radius:10px;border:0.5px solid #ccc;background:#fff;font-size:14px;cursor:pointer;color:#1a1a18}
+  .restart-btn:hover{background:#f5f5f3}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Soccer Structure Quiz</h1>
+  <p class="subtitle">Leagues, clubs, cups &amp; the pyramid</p>
+  <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+  <div id="qbody"></div>
+</div>
+
+<script>
+var CORRECT_ORDER = ["FIFA","CONCACAF","Mexico National Team (MNT)","Liga MX","Club America"];
+
+var questions = [
+  {
+    type:"sort",
+    category:"pyramid", catLabel:"Soccer pyramid",
+    q:"Drag to sort these from the top of the soccer pyramid down to the club level.",
+    items:["FIFA","CONCACAF","Mexico National Team (MNT)","Liga MX","Club America"],
+    answer:["FIFA","CONCACAF","Mexico National Team (MNT)","Liga MX","Club America"],
+    explain:"FIFA sits at the very top as the global governing body. CONCACAF is the continental confederation for North/Central America and the Caribbean. The Mexico National Team (MNT) represents the country at international level. Liga MX is Mexico's top domestic league. Club America is one of the clubs that competes in Liga MX."
+  },
+  {
+    type:"single",
+    category:"player", catLabel:"Players",
+    q:"Who does Raul Jimenez play for?",
+    opts:["Wolves and Mexico","Fulham and Mexico","Mexico only","Fulham only"],
+    answer:0,
+    explain:"Jimenez plays for Wolverhampton Wanderers (in the EFL Championship) and the Mexico national team. He returned to Wolves after leaving Fulham at the end of the 2025-26 season."
+  },
+  {
+    type:"multi",
+    category:"club", catLabel:"Club America",
+    q:"Select ALL the tournaments Club America can qualify for.",
+    opts:["Liga MX","Leagues Cup","Gold Cup","Champions League (UEFA)"],
+    correct:[0,1],
+    explain:"Club America competes in Liga MX (their domestic league) and can qualify for the Leagues Cup (a competition between MLS and Liga MX clubs). The Gold Cup is for national teams, not clubs. UEFA Champions League is only for European clubs."
+  },
+  {
+    type:"multi",
+    category:"multi", catLabel:"One player, many tournaments",
+    q:"Which 3 tournaments could ONE player compete in during a single month like March?",
+    opts:["La Liga (Spanish league)","World Cup Qualifier","Champions League (UEFA)","Liga MX"],
+    correct:[0,1,2],
+    explain:"A player at a Spanish club like Real Madrid could play La Liga (domestic league), a UEFA Champions League knockout match, AND a World Cup Qualifier with their national team, all in March. Liga MX is Mexico's league so the same player could not also be in that."
+  },
+  {
+    type:"single",
+    category:"world", catLabel:"Club World Cup",
+    q:"Who are the current FIFA Club World Cup champions?",
+    opts:["Chelsea","Manchester United","Tottenham","Real Madrid"],
+    answer:0,
+    explain:"Chelsea won the expanded 2025 FIFA Club World Cup, beating PSG 3-0 in the final at MetLife Stadium in New Jersey. Cole Palmer won the Golden Ball award."
+  }
+];
+
+var current=0,score=0,msSelected,qAnswered;
+
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}
+  return a;
+}
+
+function render(){
+  var body=document.getElementById('qbody');
+  if(current>=questions.length){showScore();return;}
+  var q=questions[current];
+  document.getElementById('prog').style.width=(current/questions.length*100)+'%';
+  qAnswered=false;msSelected={};
+  if(q.type==='sort')renderSort(q,body);
+  else if(q.type==='multi')renderMulti(q,body);
+  else renderSingle(q,body);
+}
+
+function header(q){
+  return '<div class="q-meta">Question '+(current+1)+' of '+questions.length+'</div>'
+    +'<span class="cat-badge cb-'+q.category+'">'+q.catLabel+'</span>'
+    +'<div class="q-text">'+q.q+'</div>';
+}
+
+function renderSingle(q,body){
+  var letters=['A','B','C','D'];
+  var html=header(q)+'<div class="opts">';
+  for(var i=0;i<q.opts.length;i++)
+    html+='<button class="opt" id="opt'+i+'" onclick="pickSingle('+i+')">'
+      +'<span class="opt-ltr">'+letters[i]+'</span>'+q.opts[i]+'</button>';
+  html+='</div><div id="explain"></div><div id="nwrap"></div>';
+  body.innerHTML=html;
+}
+
+function pickSingle(i){
+  if(qAnswered)return;qAnswered=true;
+  var q=questions[current];var ok=(i===q.answer);if(ok)score++;
+  for(var j=0;j<q.opts.length;j++){
+    var b=document.getElementById('opt'+j);b.disabled=true;
+    if(j===q.answer)b.className='opt '+(ok&&j===i?'correct':'reveal');
+    else if(j===i&&!ok)b.className='opt wrong';
+  }
+  document.getElementById('explain').innerHTML='<div class="explain"><strong>'+(ok?'Correct! ':'Not quite. ')+q.explain+'</strong></div>';
+  document.getElementById('nwrap').innerHTML='<button class="next-btn" onclick="nextQ()">'+(current<questions.length-1?'Next question':'See results')+' &rarr;</button>';
+}
+
+function renderMulti(q,body){
+  var html=header(q)+'<div class="ms-note">Select all that apply, then click Check.</div><div class="opts">';
+  for(var i=0;i<q.opts.length;i++)
+    html+='<div class="ms-opt" id="ms'+i+'" onclick="toggleMs('+i+')">'
+      +'<span class="ms-check" id="msc'+i+'"></span>'+q.opts[i]+'</div>';
+  html+='</div><div id="explain"></div>'
+    +'<button class="check-btn" id="mscheckbtn" onclick="checkMulti()" style="margin-top:1rem">Check answer</button>'
+    +'<div id="nwrap"></div>';
+  body.innerHTML=html;
+}
+
+function toggleMs(i){
+  if(qAnswered)return;
+  var el=document.getElementById('ms'+i);var ch=document.getElementById('msc'+i);
+  if(msSelected[i]){msSelected[i]=false;el.classList.remove('selected');ch.textContent='';}
+  else{msSelected[i]=true;el.classList.add('selected');ch.textContent='✓';}
+}
+
+function checkMulti(){
+  if(qAnswered)return;qAnswered=true;
+  var q=questions[current];var allCorrect=true;
+  for(var k=0;k<q.opts.length;k++){
+    var shouldBe=q.correct.indexOf(k)>=0;
+    if(shouldBe!==!!msSelected[k]){allCorrect=false;break;}
+  }
+  if(allCorrect)score++;
+  document.getElementById('mscheckbtn').style.display='none';
+  for(var j=0;j<q.opts.length;j++){
+    var el=document.getElementById('ms'+j);el.onclick=null;
+    var inC=q.correct.indexOf(j)>=0;var inU=!!msSelected[j];
+    if(inC&&inU)el.className='ms-opt ms-correct disabled';
+    else if(!inC&&inU)el.className='ms-opt ms-wrong disabled';
+    else if(inC&&!inU)el.className='ms-opt ms-missed disabled';
+    else el.className='ms-opt disabled';
+  }
+  document.getElementById('explain').innerHTML='<div class="explain"><strong>'+(allCorrect?'All correct! ':'Not quite. ')+q.explain+'</div>';
+  document.getElementById('nwrap').innerHTML='<button class="next-btn" onclick="nextQ()">'+(current<questions.length-1?'Next question':'See results')+' &rarr;</button>';
+}
+
+function renderSort(q,body){
+  var scrambled=shuffle(q.items);
+  var html=header(q)+'<div class="sort-list" id="slist">';
+  for(var i=0;i<scrambled.length;i++)
+    html+='<div class="sort-item" draggable="true" data-val="'+scrambled[i]+'">'
+      +'<i class="ti ti-grip-vertical drag-icon" aria-hidden="true"></i>'
+      +'<span class="sort-num">'+(i+1)+'</span><span>'+scrambled[i]+'</span></div>';
+  html+='</div><div id="sresult"></div>'
+    +'<button class="check-btn" id="sortcheckbtn" onclick="checkSort()">Check order</button>'
+    +'<div id="nwrap"></div>';
+  body.innerHTML=html;
+  initDrag();
+}
+
+function initDrag(){
+  var dragged=null;var list=document.getElementById('slist');
+  var items=list.querySelectorAll('.sort-item');
+  for(var k=0;k<items.length;k++){
+    (function(item){
+      item.addEventListener('dragstart',function(){dragged=item;item.classList.add('dragging');});
+      item.addEventListener('dragend',function(){item.classList.remove('dragging');var all=list.querySelectorAll('.sort-item');for(var x=0;x<all.length;x++)all[x].classList.remove('over');updateNums();});
+      item.addEventListener('dragover',function(e){e.preventDefault();if(item!==dragged)item.classList.add('over');});
+      item.addEventListener('dragleave',function(){item.classList.remove('over');});
+      item.addEventListener('drop',function(e){
+        e.preventDefault();item.classList.remove('over');
+        if(item!==dragged){
+          var all=[].slice.call(list.querySelectorAll('.sort-item'));
+          var di=all.indexOf(dragged),ti=all.indexOf(item);
+          if(di<ti)list.insertBefore(dragged,item.nextSibling);
+          else list.insertBefore(dragged,item);
+        }
+      });
+    })(items[k]);
+  }
+}
+
+function updateNums(){
+  var all=document.querySelectorAll('.sort-item');
+  for(var i=0;i<all.length;i++)all[i].querySelector('.sort-num').textContent=i+1;
+}
+
+function checkSort(){
+  if(qAnswered)return;qAnswered=true;
+  var list=document.getElementById('slist');
+  var all=list.querySelectorAll('.sort-item');
+  var userOrder=[];for(var i=0;i<all.length;i++)userOrder.push(all[i].getAttribute('data-val'));
+  var q=questions[current];var ok=JSON.stringify(userOrder)===JSON.stringify(q.answer);
+  if(ok)score++;
+  document.getElementById('sortcheckbtn').style.display='none';
+  for(var j=0;j<all.length;j++){all[j].style.cursor='default';all[j].draggable=false;}
+  var correctList='';
+  for(var m=0;m<q.answer.length;m++)correctList+='<span style="font-size:13px">'+(m+1)+'. '+q.answer[m]+'</span><br>';
+  document.getElementById('sresult').innerHTML='<div class="sort-result '+(ok?'ok':'bad')+'">'
+    +'<strong>'+(ok?'Perfect order!':'Not quite. Correct order:')+'</strong><br>'+(ok?'':correctList)+'<br>'+q.explain+'</div>';
+  document.getElementById('nwrap').innerHTML='<button class="next-btn" onclick="nextQ()">'+(current<questions.length-1?'Next question':'See results')+' &rarr;</button>';
+}
+
+function nextQ(){current++;render();}
+
+function showScore(){
+  document.getElementById('prog').style.width='100%';
+  var pct=Math.round(score/questions.length*100);
+  var msg,sub;
+  if(pct>=80){msg="Excellent - you know your soccer!";sub="Leagues, clubs, pyramids, players - you have got the full picture.";}
+  else if(pct>=60){msg="Solid effort - most of it is clicking.";sub="Review the explanations for the ones you missed and give it another go.";}
+  else{msg="Good start - the structure can be tricky!";sub="Read through the explanations carefully and try again.";}
+  document.getElementById('qbody').innerHTML='<div class="score-wrap">'
+    +'<div class="score-num">'+score+'/'+questions.length+'</div>'
+    +'<div class="score-lbl">'+pct+'% correct</div>'
+    +'<div class="score-msg">'+msg+'</div>'
+    +'<div class="score-sub">'+sub+'</div>'
+    +'<button class="restart-btn" onclick="restart()">Try again</button>'
+    +'</div>';
+}
+
+function restart(){current=0;score=0;render();}
+render();
+</script>
+</body>
+</html>
